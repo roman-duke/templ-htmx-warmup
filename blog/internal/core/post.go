@@ -89,6 +89,11 @@ func (p *Post) Validate() []error {
 	return errs
 }
 
+// TODO: Come back to update later (when working on the memory layer)!
+// The following code allows callers to indirectly break the rule of
+// invariants. Before any read or write, we need to check that necessary
+// constraints are satisfied.
+//===================================================================//
 func (p *Post) SetTitle(title string) {
 	p.title = title
 }
@@ -96,3 +101,10 @@ func (p *Post) SetTitle(title string) {
 func (p *Post) GetId() string {
 	return p.id
 }
+
+// indicate the post record was touched and hence the
+// updatedAt bit should be bumped up.
+func (p *Post) Touch() {
+	p.updatedAt = time.Now().Format(time.RFC3339)
+}
+//===================================================================//
