@@ -9,6 +9,7 @@ var ErrPostNotFound = errors.New("post not found")
 type PostStore interface {
 	Insert(p Post) error
 	Delete(id string) (error)
-	Find(id string) (Post, error)
+	Find(id string) (*Post, error)
+	FindAll() ([]Post, error)
 	Modify(id string, p Post) (Post, error)
 }
