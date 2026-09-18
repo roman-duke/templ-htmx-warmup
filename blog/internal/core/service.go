@@ -50,8 +50,8 @@ func (s *Service) CreatePost(p Post) (Post, error) {
 
 	p.id = s.id.NewId()
 
-	// perform validation on the post and then
-	// store it in memory
+	// perform business-side validation on the post
+	// and then store it in memory
 	validPost, errs := NewPost(p)
 
 	if len(errs) > 0 {
@@ -72,8 +72,8 @@ func (s *Service) CreatePost(p Post) (Post, error) {
 }
 
 // For the update bit, we are strictly going to be doing
-// full modification (implementation of a "PUT" request)
-// but we shall act as if we get partials
+// patching the resource. We get the partials, fetch the
+// original and then update those changes.
 func (s *Service) UpdatePost(id string, partial PartialPost) (Post, error) {
 	// we attempt to retrieve the existing post
 	p, err := s.store.Find(id)

@@ -10,8 +10,16 @@ import (
 type Post = core.Post
 type InMemoryStore map[string]Post
 
+// Question: I am not particularly sure about the error handling
+// in this layer. It's basically just get/set/update/delete ops
+// that I am doing on the map here. So nothing can cause an err
+// to happen, but this is assuming for a fact that the core/domain
+// handled all the errors properly and that whatever data it passed
+// to us has been validated.
+
 func (s InMemoryStore) Insert(p Post) error {
 	s[p.GetId()] = p
+
 	return nil
 }
 
