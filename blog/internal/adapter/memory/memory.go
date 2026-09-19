@@ -29,14 +29,26 @@ func (s InMemoryStore) Delete(id string) error {
 	return nil
 }
 
-func (s InMemoryStore) Find(id string) (Post, error) {
+func (s InMemoryStore) Find(id string) (*Post, error) {
 	post, ok := s[id]
 
 	if !ok {
-		return Post{}, core.ErrPostNotFound
+		return &Post{}, core.ErrPostNotFound
 	}
 
-	return post, nil
+	return &post, nil
+}
+
+func (s InMemoryStore) FindBy(val string) (*Post, error) {
+	// we check that the pre-existing posts don't already have
+	// this unique property, "val"
+	for _, k := range s {
+		if k.GetTitle() == val {
+			return &k, nil
+		}
+	}
+
+	return &core.Post{}, nil
 }
 
 func (s InMemoryStore) FindAll() ([]Post, error) {
