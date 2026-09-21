@@ -37,6 +37,10 @@ type Service struct {
 	id    IDGenerator
 }
 
+func NewService(id IDGenerator, s PostStore) *Service {
+	return &Service{store: s, id: id}
+}
+
 func (s *Service) CreatePost(cP CreatePostInput) (Post, error) {
 	var p Post
 	p.title = cP.Title
@@ -163,4 +167,5 @@ type UpdatePostInput struct {
 	Title   string
 	Content string
 }
+
 // ============================================================================== //
