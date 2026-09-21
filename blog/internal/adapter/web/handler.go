@@ -11,6 +11,7 @@ import (
 
 var ErrTitleRequired = errors.New("post title is required")
 var ErrContentRequired = errors.New("post content is required")
+var ErrIdRequired = errors.New("a valid post id is required")
 
 type Handler struct {
 	svc *core.Service
@@ -24,19 +25,118 @@ func NewHandler(svc *core.Service) *Handler {
 // we use our DTO to perform necessary validation before the data
 // gets to your domain (core layer)
 func (h *Handler) listPosts(w http.ResponseWriter, r *http.Request) {
+	// this handler (in its initial state) does not require much to function
+	// for now, we just display all the content on the home page in a tabular
+	// form or something
+	_, err := h.svc.GetPosts()
+	if err != nil {
+		// handle the error accordingly
+		return
+	}
 
+	// if successful -> hand the posts to the templ component for it to be displayed
+	// in a tabular format.
 }
 
 func (h *Handler) getPost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
 
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	id := r.FormValue("id")
+
+	validErr := GetPostRequest{id}.Validate()
+
+	_, getErr := h.svc.GetPost(id)
+
+	switch {
+	case validErr != nil, getErr != nil:
+		// for generic erros, just display a toast
+		w.Header().Set("Hx-Retarget", "toast")
+		w.Header().Set("Hx-Reswap", "innerHTML")
+		// render the necessary toast templ component
+		return
+	}
+
+	// on successful operation -> display the actual full post content
 }
 
 func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
 
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	id := r.FormValue("id")
+
+	validErr := DeletePostRequest{id}.Validate()
+
+	deleteErr := h.svc.DeletePost(id)
+
+	switch {
+	case validErr != nil, deleteErr != nil:
+		w.Header().Set("Hx-Retarget", "#toast")
+		w.Header().Set("Hx-Reswap", "innerHTML")
+		return
+	}
+
+	// on successful operation -> display a toast message that indicates the
+	// post was successfully deleted
 }
 
 func (h *Handler) updatePost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
 
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	var id *string
+	var title *string
+	var content *string
+
+	idVal, ok := r.Form["id"]
+	if !ok {
+		id = &idVal[0]
+	}
+
+	titleVal, ok := r.Form["title"]
+	if !ok {
+		title = &titleVal[0]
+	}
+
+	contentVal, ok := r.Form["content"]
+	if !ok {
+		content = &contentVal[0]
+	}
+
+	uP, err := UpdatePostRequest{id, title, content}.Validate()
+
+	_, updateErr := h.svc.UpdatePost(*id, uP)
+	var ve core.ValidationErrors
+
+	switch {
+	case errors.As(err, &ve):
+		return
+
+	case errors.As(updateErr, &ve):
+		// w.WriteHeader(http.StatusOK)
+		return
+
+	case updateErr != nil:
+		// for generic erros, just display a toast
+		w.Header().Set("Hx-Retarget", "toast")
+		w.Header().Set("Hx-Reswap", "innerHTML")
+		// render the necessary toast templ component
+		return
+	}
+
+	// on successful operation, show a toast that indicates that the post
+	// was successfully updated and perhaps route the user back to the
+	// home page
 }
 
 func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
@@ -52,16 +152,13 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 
 	newPostInput, err := body.Validate()
 
-	if err != nil {
-		// do something here that I am not particularly sure about yet
-		// mapping those errors to http form or something. We would circle back
-		// to that a bit later
-	}
-
 	_, createErr := h.svc.CreatePost(newPostInput)
 	var ve core.ValidationErrors
 
 	switch {
+	case errors.As(err, &ve):
+		return
+
 	case errors.As(createErr, &ve):
 		// for context-specific errors, pass the error to the templ component
 		// for it to handle properly
@@ -70,13 +167,13 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 
 	case createErr != nil:
 		// for generic errors, just display a toast
-		w.Header().Set("Hx-Target", "#toast")
+		w.Header().Set("Hx-Retarget", "#toast")
 		w.Header().Set("HX-Reswap", "innerHTML")
 		// render the necessary toast templ component
 		return
 	}
 
-	// if successful, then redirect to the home page
+	// if successful, then show success message and redirect to the home page
 }
 
 // the logging middleware used to observe the requests that came in
@@ -100,21 +197,18 @@ type CreatePostRequest struct {
 	content string
 }
 
-type UpdatePost struct {
+type UpdatePostRequest struct {
+	id      *string
 	title   *string
 	content *string
 }
 
-// the response to be displayed on the client
-// In this case, it is equivalent to the actual domain entity
-// that we deal with, but usually there might be some internal
-// fields that we wish to hide from the client.
-type PostResponse struct {
-	id        string
-	title     string
-	content   string
-	createdAt string
-	updatedAt string
+type DeletePostRequest struct {
+	id string
+}
+
+type GetPostRequest struct {
+	id string
 }
 
 func (c CreatePostRequest) Validate() (core.CreatePostInput, error) {
@@ -133,4 +227,42 @@ func (c CreatePostRequest) Validate() (core.CreatePostInput, error) {
 	}
 
 	return core.CreatePostInput{Title: c.title, Content: c.content}, nil
+}
+
+func (u UpdatePostRequest) Validate() (core.UpdatePostInput, error) {
+	errs := make(core.ValidationErrors, 0)
+
+	if u.id == nil {
+		errs = append(errs, core.FieldError{Field: "id", Message: ErrIdRequired.Error()})
+	}
+
+	if u.content == nil {
+		errs = append(errs, core.FieldError{Field: "content", Message: ErrContentRequired.Error()})
+	}
+
+	if u.title == nil {
+		errs = append(errs, core.FieldError{Field: "title", Message: ErrTitleRequired.Error()})
+	}
+
+	if len(errs) > 0 {
+		return core.UpdatePostInput{}, errs
+	}
+
+	return core.UpdatePostInput{Title: *u.title, Content: *u.content}, nil
+}
+
+func (d DeletePostRequest) Validate() error {
+	if d.id == "" {
+		return ErrIdRequired
+	}
+
+	return nil
+}
+
+func (g GetPostRequest) Validate() error {
+	if g.id == "" {
+		return ErrIdRequired
+	}
+
+	return nil
 }

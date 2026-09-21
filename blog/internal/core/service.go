@@ -87,23 +87,26 @@ func (s *Service) CreatePost(cP CreatePostInput) (Post, error) {
 // For the update bit, we are strictly going to be doing
 // patching the resource. We get the partials, fetch the
 // original and then update those changes.
-func (s *Service) UpdatePost(id string, partial PartialPost) (Post, error) {
+func (s *Service) UpdatePost(id string, partial UpdatePostInput) (Post, error) {
 	// we attempt to retrieve the existing post
 	p, err := s.store.Find(id)
 	if err != nil {
 		return Post{}, ErrPostNotFound
 	}
 
-	if partial.content != nil {
-		p.SetContent(*partial.content)
-	}
-
-	if partial.title != nil {
-		p.SetTitle(*partial.title)
-	}
-
+	// update the necessasry fields
+	p.SetContent(partial.Content)
+	p.SetTitle(partial.Title)
 	// update the "updatedAt" field
 	p.Touch()
+
+	// before we modify the actual record, we need to be sure that our rule of variants
+	// have not been broken
+	validationErr := p.Validate()
+
+	if validationErr != nil {
+		return Post{}, validationErr
+	}
 
 	updatedP, err := s.store.Modify(id, *p)
 
@@ -152,6 +155,11 @@ func (s *Service) GetPosts() ([]Post, error) {
 
 // ============================ relevant DTOs =================================== //
 type CreatePostInput struct {
+	Title   string
+	Content string
+}
+
+type UpdatePostInput struct {
 	Title   string
 	Content string
 }

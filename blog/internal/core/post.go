@@ -23,15 +23,6 @@ type Post struct {
 	updatedAt string
 }
 
-// only members of the "entity" that can actually
-// be directly modified
-// ============================================= //
-type PartialPost struct {
-	title   *string
-	content *string
-}
-// ============================================= //
-
 var ErrInvalidUUID = errors.New("invalid uuid")
 var ErrTitleEmpty = errors.New("post title cannot be empty")
 var ErrContentEmpty = errors.New("post content cannot be empty")
@@ -62,7 +53,7 @@ func NewPost(p Post) (Post, ValidationErrors) {
 // + content should not be empty
 // + "createdAt" should not be empty and should
 // + be greater than or less than "updatedAt"
-func (p *Post) Validate() []FieldError {
+func (p *Post) Validate() ValidationErrors {
 	errs := make([]FieldError, 0)
 	// should perform validation for necessary fields
 	// the rules include the following:
