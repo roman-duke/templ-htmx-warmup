@@ -10,10 +10,10 @@ func (h *Handler) Routes() http.Handler {
 	fS := http.FileServer(dir)
 	handler := http.StripPrefix("/static", fS)
 
-	mux.Handle("/static/", handler)
+	mux.Handle("GET /static/", handler)
 	//==========================================================================//
 
-	mux.HandleFunc("GET /", h.listPosts)
+	mux.HandleFunc("GET /", h.home)
 	mux.HandleFunc("GET /posts", h.listPosts)
 	mux.HandleFunc("POST /posts", h.createPost)
 	mux.HandleFunc("GET /posts/{id}", h.getPost)

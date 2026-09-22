@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/templates"
 	"github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
 )
 
@@ -19,6 +20,13 @@ type Handler struct {
 
 func NewHandler(svc *core.Service) *Handler {
 	return &Handler{svc}
+}
+
+// our application has only one route (single-page), so this
+// just serves that page and embeds the necessary component islands
+// via htmx (I mean, not technically, but that's the ideal path)
+func (h *Handler) home(w http.ResponseWriter, r *http.Request) {
+	templates.App().Render(r.Context(), w)
 }
 
 // now, we define the respective handlers
