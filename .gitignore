@@ -1,0 +1,5 @@
+# Ignore the tailwind binary
+tailwind-cli/
+
+# Ignore out the output css files
+output.css

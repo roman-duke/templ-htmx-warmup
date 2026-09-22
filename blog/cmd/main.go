@@ -12,7 +12,7 @@ import (
 	"github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
 )
 
-var PORT = "8080"
+var PORT = os.Getenv("PORT")
 
 func main() {
 	// spin up the service via a constructor (that injects necesasry dependencies)
@@ -22,7 +22,7 @@ func main() {
 	svc := core.NewService(g, store)
 	handler := web.NewHandler(svc)
 
-	fmt.Printf("\033[35mServer listening at http://localhost:%s\033[0m", PORT)
+	fmt.Printf("\033[35mServer listening at http://localhost:%s\033[0m\n", PORT)
 
 	err := http.ListenAndServe(fmt.Sprintf(":%s", PORT), handler.Routes())
 

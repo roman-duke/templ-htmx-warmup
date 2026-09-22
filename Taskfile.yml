@@ -1,0 +1,70 @@
+version: '3'
+
+vars:
+  # Pin the version down so that all collaborators have access to the same cli
+  TAILWIND_VERSION: v4.3.0
+
+  # Translate Go's GOOS/GOARCH (apprently what Task exposes) to Tailwind's asset naming
+  TW_OS: '{{if eq OS "darwin"}}macos{{else if eq OS "windows"}}windows{{else}}linux{{end}}'
+  TW_ARCH: '{{if eq ARCH "arm64"}}arm64{{else}}x64{{end}}'
+  TW_EXT: '{{if eq OS "windows"}}.exe{{end}}'
+
+  # Assemble the release asset name and the local binary path
+  TW_ASSET: 'tailwindcss-{{.TW_OS}}-{{.TW_ARCH}}{{.TW_EXT}}'
+  TAILWIND_BIN: './tailwind-cli/tailwindcss{{.TW_EXT}}'
+
+  # Path to the entry css file (for the blog post project for now)
+  BLOG_ROOT: './blog'
+  STYLES: '{{.BLOG_ROOT}}/internal/adapter/web/assets/styles'
+
+  # The app port: an explicity 'task dev PORT=8080' wins, otherwise the next free port from
+  # 8090 up. the templ proxy and teh app share the resutl, so hot reload never points at a
+  # the wrong destination
+  FREE_PORT:
+    sh: port=8090; while nc -z localhost $port >/dev/null 2>&1; do port=$((port+1)); done; echo $port
+  PORT: '{{.PORT | default .FREE_PORT}}'
+
+tasks:
+  tailwind:install:
+    desc: Download the standalone Tailwind CSS v4 CLI for this OS/arch
+    vars:
+      TW_URL: 'https://github.com/tailwindlabs/tailwindcss/releases/download/{{.TAILWIND_VERSION}}/{{.TW_ASSET}}'
+    status:
+      - test -f {{.TAILWIND_BIN}}
+    cmds:
+      - mkdir -p tailwind-cli
+      - curl -fL# -o {{.TAILWIND_BIN}} {{.TW_URL}}
+      - '{{if ne OS "windows"}}chmod +x {{.TAILWIND_BIN}}{{end}}'
+
+  css:build:
+    desc: Compile the stylesheet once
+    deps: [tailwind:install]
+    cmds:
+      - '{{.TAILWIND_BIN}} -i {{.STYLES}}/input.css -o {{.STYLES}}/output.css --minify'
+
+  css:watch:
+    desc: Recompile the stylesheet on change
+    deps: [tailwind:install]
+    cmds:
+      - '{{.TAILWIND_BIN}} -i {{.STYLES}}/input.css -o {{.STYLES}}/output.css --watch'
+
+  templ:
+    dir: '{{.BLOG_ROOT}}'
+    desc: Run templ with integrated server and hot relaod
+    cmds:
+      - go tool templ generate --watch --proxy="http://localhost:{{.PORT}}" --cmd="go run ./cmd" --open-browser=false
+    env:
+      PORT: "{{.PORT}}"
+
+  scripts-watch:
+    dir: '{{.BLOG_ROOT}}'
+    desc: Watch component scripts
+    cmds:
+      - go tool shadcn-templ bundle --watch
+
+  dev:
+    env:
+      SHADCN_TEMPL_DEV: "true"
+    desc: Start development server with hot relaod
+    cmds:
+      - task --parallel css:watch scripts-watch templ

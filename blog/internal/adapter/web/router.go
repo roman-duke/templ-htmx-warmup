@@ -5,6 +5,15 @@ import "net/http"
 func (h *Handler) Routes() http.Handler {
 	mux := http.NewServeMux()
 
+	//================= configure to serve static assets in go =================//
+	dir := http.Dir("./internal/adapter/web/assets")
+	fS := http.FileServer(dir)
+	handler := http.StripPrefix("/static", fS)
+
+	mux.Handle("/static/", handler)
+	//==========================================================================//
+
+	mux.HandleFunc("GET /", h.listPosts)
 	mux.HandleFunc("GET /posts", h.listPosts)
 	mux.HandleFunc("POST /posts", h.createPost)
 	mux.HandleFunc("GET /posts/{id}", h.getPost)
