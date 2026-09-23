@@ -33,7 +33,7 @@ func (s InMemoryStore) Find(id string) (*Post, error) {
 	post, ok := s[id]
 
 	if !ok {
-		return &Post{}, core.ErrPostNotFound
+		return nil, core.ErrPostNotFound
 	}
 
 	return &post, nil
@@ -48,7 +48,7 @@ func (s InMemoryStore) FindBy(val string) (*Post, error) {
 		}
 	}
 
-	return &core.Post{}, nil
+	return nil, core.ErrPostNotFound
 }
 
 func (s InMemoryStore) FindAll() ([]Post, error) {
