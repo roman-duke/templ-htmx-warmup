@@ -1,7 +1,13 @@
 package molecules
 
 templ Sidebar() {
-  <div class="p-3 flex basis-1/4 max-w-75">
-    @Header()
-  </div>
+	<div class="p-3 flex flex-col space-y-2 basis-[30%] max-w-75">
+		@Header()
+
+		<div class="" hx-get="/posts" hx-swap="outerHTML" hx-target="#posts-lists" hx-trigger="load, postsMutated from:body">
+			<h1 class="text-lg">POSTS</h1>
+
+			<div id="posts-lists" class="flex flex-col space-y-2"></div>
+		</div>
+	</div>
 }

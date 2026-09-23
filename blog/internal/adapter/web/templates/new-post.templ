@@ -1,0 +1,82 @@
+package templates
+
+import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/field"
+import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/input"
+import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/textarea"
+import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/button"
+import "github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
+import "slices"
+
+templ NewPost(errs core.ValidationErrors) {
+	<div class="h-full w-full mx-auto max-w-2xl flex items-center justify-center">
+		<div class="w-full rounded-lg border border-border bg-card text-card-foreground shadow-sm">
+			<form class="flex flex-col gap-6 p-6" hx-post="/posts">
+				@field.Group() {
+					@field.Set() {
+						@field.Legend(field.LegendProps{Class: "data-[variant=legend]:text-lg"}) {
+							New Post
+						}
+						@field.Description(field.DescriptionProps{Class: "text-sm"}) {
+							Write a new entry for your blog. Content is written in Markdown and rendered to HTML when published.
+						}
+					}
+					@field.Group() {
+						@field.Field() {
+							@field.Label(field.LabelProps{For: "post-title"}) {
+								Title
+							}
+							@input.Input(input.Props{ID: "post-title", Name: "title", Placeholder: "Any physics topic..."})
+							@field.Description() {
+								Shown in the sidebar and as the post heading. Must be unique.
+							}
+							@fieldRenderer("title", errs)
+						}
+						@field.Field() {
+							@field.Label(field.LabelProps{For: "post-content"}) {
+								Content
+							}
+							@textarea.Textarea(textarea.Props{ID: "post-content", Name: "content", Placeholder: "Write your post in markdown...",
+								Class: "resize-none h-40"})
+							@field.Description() {
+								Supports markdown. Requires at least 50 characters...
+							}
+							@fieldRenderer("content", errs)
+						}
+					}
+				}
+				<div class="flex items-center justify-end gap-2">
+					@button.Button(button.Props{Variant: "outline", Type: "reset", Size: button.SizeLg, Class: "px-3 py-4"}) {
+						Clear
+					}
+					@button.Button(button.Props{Variant: "default", Type: "submit", Size: button.SizeLg, Class: "px-3 py-4"}) {
+						Publish Post
+					}
+				</div>
+			</form>
+		</div>
+	</div>
+}
+
+templ fieldRenderer(key string, source core.ValidationErrors) {
+	// we extract a pointer to the error from the source based on the key that is
+	// provided. If none is found, then our variable holds nil and this serves as
+	// as indication of the absence of an error for this field
+	{{
+		var err *core.FieldError
+		errIdx := slices.IndexFunc(source, func(err core.FieldError) bool {
+			return err.Field == key
+		})
+
+		if errIdx != -1 {
+			err = &source[errIdx]
+		}
+	}}
+	if err != nil {
+		@field.Error() {
+			{ err.Message }
+		}
+		// // <p class="text-red-500 text-sm">
+		// { err.Message }
+		// // </p>
+	}
+}

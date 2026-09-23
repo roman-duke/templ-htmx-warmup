@@ -1,0 +1,54 @@
+package templates
+
+import "github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
+
+import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/icons"
+import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/button"
+
+templ Posts(ps []core.Post) {
+	{{ postsLength := len(ps) }}
+	// the beauty of Go having multiple return values is that we don't need a fragment wrapper
+	// we can just have the sibling elements at the top level and during compilation, this just
+	// becomes a sequence of WriteString calls to the respective target.
+	// This is the response bit for the section that would be displayed in the sidebar
+	if postsLength == 0 {
+		<span id="posts-lists" class="font-medium relative top-10 p-3">empty :(</span>
+	} else {
+		<ul>
+			for _, val := range ps {
+				@postSummary(val)
+			}
+		</ul>
+	}
+	// This is the response bit for the section that would be displayed in the main pane
+	// we use it to dynamically render if we should display the empty state and a "welcome
+	// back" message or not
+	<div class="flex flex-col" id="main-pane" hx-swap-oob="innerHTML">
+		if postsLength == 0 {
+			<div class="h-full w-full flex items-center justify-center">
+				<div class="relative -top-10 space-y-1">
+					<h2 class="text-2xl text-center font-medium">No posts yet</h2>
+					<div hx-get="/new-post" hx-target="#main-pane" hx-swap="innerHTML">
+						@button.Button(button.Props{Variant: "secondary", Class: "cursor-pointer py-4"}) {
+							Create your first blog post
+						}
+					</div>
+				</div>
+			</div>
+		} else {
+			<h2 class="font-medium">Hello there! Welcome back</h2>
+			<p>Ready to cook again?</p>
+		}
+	</div>
+}
+
+// this should ideally be placed in the "molecules section, but that's an overkill for structure"
+templ postSummary(p core.Post) {
+	<li class="flex flex-col p-2 rounded-md">
+		<h3>{ p.GetTitle() }</h3>
+		<div class="flex justify-between items-center">
+			<span>{ p.GetCreatedAt().Format("Jan 2, 2006") }</span>
+			@icons.Trash("size-10 stroke-white")
+		</div>
+	</li>
+}

@@ -47,14 +47,15 @@ func (s *Service) CreatePost(cP CreatePostInput) (Post, error) {
 	p.content = cP.Content
 
 	// check that the post does not already exist
-	post, dupErr := s.store.FindBy(cP.Title)
-
-	if dupErr != nil {
-		return Post{}, ErrInternalSvr
-	}
+	post, notFoundErr := s.store.FindBy(cP.Title)
 
 	if post != nil {
 		return Post{}, ErrDuplicatePost
+	} else if errors.Is(notFoundErr, ErrPostNotFound) {
+		// if it is the case that there is no such post, then do nothing
+		// and continue with normal code execution.
+	} else if notFoundErr != nil {
+		return Post{}, ErrInternalSvr
 	}
 
 	p.id = s.id.NewId()

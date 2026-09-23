@@ -14,6 +14,7 @@ func (h *Handler) Routes() http.Handler {
 	//==========================================================================//
 
 	mux.HandleFunc("GET /", h.home)
+	mux.HandleFunc("GET /new-post", h.newPost)
 	mux.HandleFunc("GET /posts", h.listPosts)
 	mux.HandleFunc("POST /posts", h.createPost)
 	mux.HandleFunc("GET /posts/{id}", h.getPost)

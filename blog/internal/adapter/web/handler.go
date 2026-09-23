@@ -29,6 +29,10 @@ func (h *Handler) home(w http.ResponseWriter, r *http.Request) {
 	templates.App().Render(r.Context(), w)
 }
 
+func (h *Handler) newPost(w http.ResponseWriter, r *http.Request) {
+	templates.NewPost(core.ValidationErrors{}).Render(r.Context(), w)
+}
+
 // now, we define the respective handlers
 // we use our DTO to perform necessary validation before the data
 // gets to your domain (core layer)
@@ -36,7 +40,7 @@ func (h *Handler) listPosts(w http.ResponseWriter, r *http.Request) {
 	// this handler (in its initial state) does not require much to function
 	// for now, we just display all the content on the home page in a tabular
 	// form or something
-	_, err := h.svc.GetPosts()
+	posts, err := h.svc.GetPosts()
 	if err != nil {
 		// handle the error accordingly
 		return
@@ -44,6 +48,8 @@ func (h *Handler) listPosts(w http.ResponseWriter, r *http.Request) {
 
 	// if successful -> hand the posts to the templ component for it to be displayed
 	// in a tabular format.
+	component := templates.Posts(posts)
+	component.Render(r.Context(), w)
 }
 
 func (h *Handler) getPost(w http.ResponseWriter, r *http.Request) {
@@ -165,6 +171,8 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case errors.As(err, &ve):
+		w.WriteHeader(http.StatusBadRequest)
+
 		return
 
 	case errors.As(createErr, &ve):
@@ -181,6 +189,7 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Hx-Trigger", "postsMutated")
 	// if successful, then show success message and redirect to the home page
 }
 
