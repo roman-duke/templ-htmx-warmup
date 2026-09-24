@@ -1,0 +1,75 @@
+package toast
+
+import "github.com/roman-duke/templ-htmx-warmup/blog/utils"
+
+type Variant string
+
+const (
+	VariantError   Variant = "error"
+	VariantSuccess Variant = "success"
+)
+
+type Props struct {
+	Variant Variant
+	Title   string
+	Message string
+}
+
+const baseClasses = "pointer-events-auto flex items-start gap-3 w-80 max-w-[calc(100vw-2rem)] rounded-lg border p-4 shadow-lg animate-in slide-in-from-right fade-in duration-300"
+
+templ Toast(props Props) {
+	{{ p := props }}
+	if p.Variant == "" {
+		{{ p.Variant = VariantError }}
+	}
+	<div
+		data-slot="toast"
+		role="alert"
+		aria-live="assertive"
+		class={ utils.CN(baseClasses, p.variantClasses()) }
+		hx-on:htmx:load="setTimeout(() => this.remove(), 4000)"
+	>
+		@icon(p.Variant)
+		<div class="flex-1 space-y-0.5 text-sm">
+			if p.Title != "" {
+				<p class="font-semibold leading-none">{ p.Title }</p>
+			}
+			if p.Message != "" {
+				<p class="opacity-90">{ p.Message }</p>
+			}
+		</div>
+		<button
+			type="button"
+			aria-label="Dismiss"
+			class="shrink-0 opacity-70 transition-opacity hover:opacity-100"
+			hx-on:click="this.closest('[data-slot=toast]').remove()"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+		</button>
+	</div>
+}
+
+// ToastOOB wraps a Toast in an out-of-band container that appends it to the
+// #toast-container tray declared in the base layout. 
+templ ToastOOB(props Props) {
+	<div hx-swap-oob="beforeend:#toast-container">
+		@Toast(props)
+	</div>
+}
+
+func (p Props) variantClasses() string {
+	switch p.Variant {
+	case VariantSuccess:
+		return "border-green-700 bg-green-600 text-white"
+	default:
+		return "border-destructive bg-destructive text-white"
+	}
+}
+
+templ icon(v Variant) {
+	if v == VariantSuccess {
+		<svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"></path><path d="m9 11 3 3L22 4"></path></svg>
+	} else {
+		<svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
+	}
+}

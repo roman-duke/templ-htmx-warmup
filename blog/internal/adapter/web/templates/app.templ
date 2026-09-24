@@ -5,18 +5,27 @@ import "github.com/roman-duke/templ-htmx-warmup/blog/utils"
 
 templ App() {
 	<!DOCTYPE html>
-	<html lang="en">
+	<html lang="en" class="dark">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>Blog Post</title>
-      <link rel="stylesheet" href={utils.ScriptURL("/static/styles/output.css")} />
-      <script src="/static/js/htmx.min.js"></script>
+			<link rel="stylesheet" href={ utils.ScriptURL("/static/styles/output.css") }/>
+			<meta
+				name="htmx-config"
+				content='{"responseHandling":[
+          {"code":"204","swap":false},
+          {"code":"[23]..","swap":true},
+          {"code":"[45]..","swap":true,"error":true},
+          {"code":"...","swap":false,"error":true}
+        ]}'
+			/>
+			<script src="/static/js/htmx.min.js"></script>
 		</head>
-
-		<body class="flex text-white bg-foreground h-dvh">
-      @molecules.Sidebar()
-      @molecules.Main()
-    </body>
+		<body class="flex h-dvh">
+			@molecules.Sidebar()
+			@molecules.Main()
+			<div id="toast-container" class="pointer-events-none fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+		</body>
 	</html>
 }

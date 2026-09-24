@@ -118,6 +118,10 @@ func (p *Post) GetTitle() string {
 	return p.title
 }
 
+func (p *Post) GetContent() string {
+	return p.content
+}
+
 func (p *Post) GetCreatedAt() time.Time {
 	// how is this error ideally meant to be handled?
 	date, _ := time.Parse(time.RFC3339, p.createdAt)

@@ -54,7 +54,7 @@ func (s *Service) CreatePost(cP CreatePostInput) (Post, error) {
 	} else if errors.Is(notFoundErr, ErrPostNotFound) {
 		// if it is the case that there is no such post, then do nothing
 		// and continue with normal code execution.
-	} else if notFoundErr != nil {
+	} else if notFoundErr != nil { // the case where a storage read failed
 		return Post{}, ErrInternalSvr
 	}
 
@@ -96,7 +96,7 @@ func (s *Service) UpdatePost(id string, partial UpdatePostInput) (Post, error) {
 	// we attempt to retrieve the existing post
 	p, err := s.store.Find(id)
 	if err != nil {
-		return Post{}, ErrPostNotFound
+		return Post{}, err
 	}
 
 	// update the necessasry fields
@@ -109,7 +109,9 @@ func (s *Service) UpdatePost(id string, partial UpdatePostInput) (Post, error) {
 	// have not been broken
 	validationErr := p.Validate()
 
-	if validationErr != nil {
+	// this causes a bug here because I didn't return a pointer to the validation errors
+	// and then I went on to check for nillness.
+	if len(validationErr) > 0 {
 		return Post{}, validationErr
 	}
 

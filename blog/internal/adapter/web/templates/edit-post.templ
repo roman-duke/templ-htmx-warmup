@@ -6,11 +6,30 @@ import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/compon
 import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/button"
 import "github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
 import "slices"
+import "fmt"
 
-templ NewPost(errs core.ValidationErrors) {
+// this is reused for the case of creation and also edit
+// we just check what the pointer variable references
+templ EditPost(errs core.ValidationErrors, post *core.Post) {
+	{{
+		titleVal := ""
+		contentVal := ""
+
+		if post != nil {
+			titleVal = post.GetTitle()
+			contentVal = post.GetContent()
+		}
+	}}
 	<div class="h-full w-full mx-auto max-w-2xl flex items-center justify-center">
 		<div class="w-full rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-			<form class="flex flex-col gap-6 p-6" hx-post="/posts">
+			<form
+				class="flex flex-col gap-6 p-6"
+				if post != nil {
+					hx-patch={ fmt.Sprintf("/posts/%s", post.GetId()) }
+				} else {
+					hx-post="/posts"
+				}
+			>
 				@field.Group() {
 					@field.Set() {
 						@field.Legend(field.LegendProps{Class: "data-[variant=legend]:text-lg"}) {
@@ -25,7 +44,7 @@ templ NewPost(errs core.ValidationErrors) {
 							@field.Label(field.LabelProps{For: "post-title"}) {
 								Title
 							}
-							@input.Input(input.Props{ID: "post-title", Name: "title", Placeholder: "Any physics topic..."})
+							@input.Input(input.Props{ID: "post-title", Name: "title", Placeholder: "Any physics topic...", Value: titleVal})
 							@field.Description() {
 								Shown in the sidebar and as the post heading. Must be unique.
 							}
@@ -36,7 +55,7 @@ templ NewPost(errs core.ValidationErrors) {
 								Content
 							}
 							@textarea.Textarea(textarea.Props{ID: "post-content", Name: "content", Placeholder: "Write your post in markdown...",
-								Class: "resize-none h-40"})
+								Class: "resize-none h-40", Value: contentVal})
 							@field.Description() {
 								Supports markdown. Requires at least 50 characters...
 							}
@@ -49,7 +68,11 @@ templ NewPost(errs core.ValidationErrors) {
 						Clear
 					}
 					@button.Button(button.Props{Variant: "default", Type: "submit", Size: button.SizeLg, Class: "px-3 py-4"}) {
-						Publish Post
+						if post != nil {
+							Update Post
+						} else {
+							Publish Post
+						}
 					}
 				</div>
 			</form>

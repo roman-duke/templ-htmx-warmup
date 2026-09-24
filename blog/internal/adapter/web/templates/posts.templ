@@ -4,6 +4,7 @@ import "github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
 
 import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/icons"
 import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/button"
+import "fmt"
 
 templ Posts(ps []core.Post) {
 	{{ postsLength := len(ps) }}
@@ -14,7 +15,7 @@ templ Posts(ps []core.Post) {
 	if postsLength == 0 {
 		<span id="posts-lists" class="font-medium relative top-10 p-3">empty :(</span>
 	} else {
-		<ul>
+		<ul id="posts-lists">
 			for _, val := range ps {
 				@postSummary(val)
 			}
@@ -28,27 +29,36 @@ templ Posts(ps []core.Post) {
 			<div class="h-full w-full flex items-center justify-center">
 				<div class="relative -top-10 space-y-1">
 					<h2 class="text-2xl text-center font-medium">No posts yet</h2>
-					<div hx-get="/new-post" hx-target="#main-pane" hx-swap="innerHTML">
-						@button.Button(button.Props{Variant: "secondary", Class: "cursor-pointer py-4"}) {
-							Create your first blog post
-						}
-					</div>
+					@button.Button(button.Props{Variant: "secondary", Class: "cursor-pointer py-4", Attributes: templ.Attributes{"hx-get": "/new-post", "hx-target": "#main-pane", "hx-swap": "innerHTML"}}) {
+						Create your first blog post
+					}
 				</div>
 			</div>
 		} else {
-			<h2 class="font-medium">Hello there! Welcome back</h2>
-			<p>Ready to cook again?</p>
+			<div class="px-3 w-full flex flex-col items-center justify-center space-y-4">
+				<div class="text-center">
+					<h2 class="font-semibold text-xl">Hello there! Welcome back</h2>
+					<p class="">Ready to cook again?</p>
+				</div>
+				@button.Button(button.Props{Variant: "secondary", Class: "cursor-pointer py-4", Attributes: templ.Attributes{"hx-get": "/new-post", "hx-target": "#main-pane", "hx-swap": "innerHTML"}}) {
+					Create a new blog post
+				}
+			</div>
 		}
 	</div>
 }
 
 // this should ideally be placed in the "molecules section, but that's an overkill for structure"
 templ postSummary(p core.Post) {
-	<li class="flex flex-col p-2 rounded-md">
+	{{ getEndpoint := fmt.Sprintf("/posts/%s", p.GetId()) }}
+	<li
+		class="flex justify-between my-2 items-center p-2 rounded-md border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+		hx-swap="innerHTML"
+		hx-get={ getEndpoint }
+		hx-target="#main-pane"
+	>
 		<h3>{ p.GetTitle() }</h3>
-		<div class="flex justify-between items-center">
-			<span>{ p.GetCreatedAt().Format("Jan 2, 2006") }</span>
-			@icons.Trash("size-10 stroke-white")
-		</div>
+		// <span>{ p.GetCreatedAt().Format("Jan 2, 2006") }</span>
+		@icons.Trash("size-10 stroke-white")
 	</li>
 }

@@ -2,10 +2,12 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/toast"
 	"github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/templates"
 	"github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
 )
@@ -30,7 +32,7 @@ func (h *Handler) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) newPost(w http.ResponseWriter, r *http.Request) {
-	templates.NewPost(core.ValidationErrors{}).Render(r.Context(), w)
+	templates.EditPost(core.ValidationErrors{}, nil).Render(r.Context(), w)
 }
 
 // now, we define the respective handlers
@@ -42,6 +44,8 @@ func (h *Handler) listPosts(w http.ResponseWriter, r *http.Request) {
 	// form or something
 	posts, err := h.svc.GetPosts()
 	if err != nil {
+		toastErrComp := toast.ToastOOB(toast.Props{Title: "Error", Message: "Error Retrieving Posts"})
+		toastErrComp.Render(r.Context(), w)
 		// handle the error accordingly
 		return
 	}
@@ -59,11 +63,13 @@ func (h *Handler) getPost(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	id := r.FormValue("id")
+	id := r.PathValue("id")
 
 	validErr := GetPostRequest{id}.Validate()
 
-	_, getErr := h.svc.GetPost(id)
+	// ideally if the validation fails, we should not even attempt to bother the memory with
+	// getting a post. But we shall leave the bad practice here for the sake of simplicity.
+	post, getErr := h.svc.GetPost(id)
 
 	switch {
 	case validErr != nil, getErr != nil:
@@ -74,7 +80,7 @@ func (h *Handler) getPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// on successful operation -> display the actual full post content
+	templates.EditPost(core.ValidationErrors{}, &post).Render(r.Context(), w)
 }
 
 func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
@@ -112,18 +118,16 @@ func (h *Handler) updatePost(w http.ResponseWriter, r *http.Request) {
 	var title *string
 	var content *string
 
-	idVal, ok := r.Form["id"]
-	if !ok {
-		id = &idVal[0]
-	}
+	idVal := r.PathValue("id")
+	id = &idVal
 
 	titleVal, ok := r.Form["title"]
-	if !ok {
+	if ok {
 		title = &titleVal[0]
 	}
 
 	contentVal, ok := r.Form["content"]
-	if !ok {
+	if ok {
 		content = &contentVal[0]
 	}
 
@@ -148,9 +152,11 @@ func (h *Handler) updatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Hx-Trigger", "postsMutated")
 	// on successful operation, show a toast that indicates that the post
 	// was successfully updated and perhaps route the user back to the
 	// home page
+	toast.ToastOOB(toast.Props{Title: "Success", Message: "Post updated successfully!", Variant: "success"}).Render(r.Context(), w)
 }
 
 func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
@@ -170,27 +176,31 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 	var ve core.ValidationErrors
 
 	switch {
-	case errors.As(err, &ve):
-		w.WriteHeader(http.StatusBadRequest)
-
-		return
-
-	case errors.As(createErr, &ve):
+	case errors.As(err, &ve), errors.As(createErr, &ve):
 		// for context-specific errors, pass the error to the templ component
 		// for it to handle properly
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+
+	case errors.Is(createErr, core.ErrDuplicatePost):
+		w.Header().Set("Hx-Reswap", "none")
+		w.WriteHeader(http.StatusConflict)
+		toast.ToastOOB(toast.Props{Title: "Duplicate Post", Message: "A similar post already exists!"}).Render(r.Context(), w)
 		return
 
 	case createErr != nil:
 		// for generic errors, just display a toast
-		w.Header().Set("Hx-Retarget", "#toast")
-		w.Header().Set("HX-Reswap", "innerHTML")
+		w.WriteHeader(http.StatusInternalServerError)
+		toast.ToastOOB(toast.Props{Title: "Error", Message: "Internal Sever Error!"}).Render(r.Context(), w)
 		// render the necessary toast templ component
 		return
 	}
 
+	// if successful, then show success message toast and then
+	// trigger a server sent event that htmx listens for in order
+	// to refresh the list of posts in the sidebar.
 	w.Header().Set("Hx-Trigger", "postsMutated")
-	// if successful, then show success message and redirect to the home page
+	toast.ToastOOB(toast.Props{Title: "Success", Message: "Post created successfully!", Variant: "success"}).Render(r.Context(), w)
 }
 
 // the logging middleware used to observe the requests that came in
@@ -260,6 +270,8 @@ func (u UpdatePostRequest) Validate() (core.UpdatePostInput, error) {
 	if u.title == nil {
 		errs = append(errs, core.FieldError{Field: "title", Message: ErrTitleRequired.Error()})
 	}
+
+	fmt.Println(errs)
 
 	if len(errs) > 0 {
 		return core.UpdatePostInput{}, errs
