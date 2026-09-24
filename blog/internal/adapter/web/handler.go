@@ -13,8 +13,8 @@ import (
 )
 
 var ErrTitleRequired = errors.New("post title is required")
-var ErrContentRequired = errors.New("post content is required")
 var ErrIdRequired = errors.New("a valid post id is required")
+var ErrContentRequired = errors.New("post content is required")
 
 type Handler struct {
 	svc *core.Service
@@ -32,7 +32,8 @@ func (h *Handler) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) newPost(w http.ResponseWriter, r *http.Request) {
-	templates.EditPost(core.ValidationErrors{}, nil).Render(r.Context(), w)
+	// construct the values
+	templates.EditPost(templates.EditPostProps{Errs: core.ValidationErrors{}, Values: &templates.FormValues{}}).Render(r.Context(), w)
 }
 
 // now, we define the respective handlers
@@ -80,7 +81,16 @@ func (h *Handler) getPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templates.EditPost(core.ValidationErrors{}, &post).Render(r.Context(), w)
+	// form values, derived from the existing post in this case
+	v := templates.FormValues{
+		Id:        post.GetId(),
+		Title:     post.GetTitle(),
+		Content:   post.GetContent(),
+		CreatedAt: post.GetCreatedAt(),
+		UpdatedAt: post.GetUpdatedAt(),
+	}
+
+	templates.EditPost(templates.EditPostProps{Errs: core.ValidationErrors{}, Values: &v}).Render(r.Context(), w)
 }
 
 func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +100,7 @@ func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	id := r.FormValue("id")
+	id := r.PathValue("id")
 
 	validErr := DeletePostRequest{id}.Validate()
 
@@ -103,6 +113,10 @@ func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Hx-Reswap", "none")
+	w.Header().Set("Hx-Trigger", "postsMutated")
+
+	toast.ToastOOB(toast.Props{Title: "Success", Message: "Post successfully deleted!", Variant: "success"}).Render(r.Context(), w)
 	// on successful operation -> display a toast message that indicates the
 	// post was successfully deleted
 }
@@ -138,17 +152,41 @@ func (h *Handler) updatePost(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case errors.As(err, &ve):
+		// in this case where there is no id for the patch, just show the toast
+		// and redirect to the home page
+		w.Header().Set("Hx-Reswap", "none")
+		w.Header().Set("Hx-Trigger", "postsMutated")
+		w.WriteHeader(http.StatusBadRequest)
+
+		toastErrComp := toast.ToastOOB(toast.Props{Title: "Error", Message: "Something went wrong :("})
+		toastErrComp.Render(r.Context(), w)
 		return
 
 	case errors.As(updateErr, &ve):
 		// w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+
+		// fetch the necessary post because we need to retrieve its createdAt and updatedAt
+		post, _ := h.svc.GetPost(*id)
+
+		// construct the necessary form values
+		v := templates.FormValues{
+			Id: *id,
+			Title: *title,
+			Content: *content,
+			// this is actually weird because what if something also fails here too?
+			CreatedAt: post.GetCreatedAt(),
+			UpdatedAt: post.GetUpdatedAt(),
+		}
+
+		templates.EditPost(templates.EditPostProps{Errs: ve, Values: &v}).Render(r.Context(), w)
 		return
 
 	case updateErr != nil:
 		// for generic erros, just display a toast
-		w.Header().Set("Hx-Retarget", "toast")
-		w.Header().Set("Hx-Reswap", "innerHTML")
-		// render the necessary toast templ component
+		w.Header().Set("Hx-Reswap", "none")
+		toastErrComp := toast.ToastOOB(toast.Props{Title: "Error", Message: "Internal Server Error"})
+		toastErrComp.Render(r.Context(), w)
 		return
 	}
 

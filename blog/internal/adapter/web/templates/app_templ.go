@@ -10,6 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/templates/molecules"
 import "github.com/roman-duke/templ-htmx-warmup/blog/utils"
+import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/dialog"
 
 func App() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -39,13 +40,13 @@ func App() templ.Component {
 		var templ_7745c5c3_Var2 templ.SafeURL
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(utils.ScriptURL("/static/styles/output.css"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/app.templ`, Line: 13, Col: 77}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/app.templ`, Line: 14, Col: 77}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><meta name=\"htmx-config\" content='{\"responseHandling\":[\n          {\"code\":\"204\",\"swap\":false},\n          {\"code\":\"[23]..\",\"swap\":true},\n          {\"code\":\"[45]..\",\"swap\":true,\"error\":true},\n          {\"code\":\"...\",\"swap\":false,\"error\":true}\n        ]}'><script src=\"/static/js/htmx.min.js\"></script></head><body class=\"flex h-dvh\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><meta name=\"htmx-config\" content='{\"responseHandling\":[\n          {\"code\":\"204\",\"swap\":false},\n          {\"code\":\"[23]..\",\"swap\":true},\n          {\"code\":\"[45]..\",\"swap\":true,\"error\":true},\n          {\"code\":\"...\",\"swap\":false,\"error\":true}\n        ]}'><script src=\"/static/js/htmx.min.js\"></script><script defer src=\"/static/js/confirm.js\"></script></head><body class=\"flex h-dvh\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -57,7 +58,15 @@ func App() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div id=\"toast-container\" class=\"pointer-events-none fixed top-4 right-4 z-50 flex flex-col gap-2\"></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div id=\"toast-container\" class=\"pointer-events-none fixed top-4 right-4 z-50 flex flex-col gap-2\"></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = dialog.Confirm().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

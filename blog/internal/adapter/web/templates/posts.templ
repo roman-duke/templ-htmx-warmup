@@ -15,7 +15,7 @@ templ Posts(ps []core.Post) {
 	if postsLength == 0 {
 		<span id="posts-lists" class="font-medium relative top-10 p-3">empty :(</span>
 	} else {
-		<ul id="posts-lists">
+		<ul id="posts-lists" class="flex flex-col space-y-2 flex-1 min-h-0 overflow-y-auto">
 			for _, val := range ps {
 				@postSummary(val)
 			}
@@ -52,13 +52,13 @@ templ Posts(ps []core.Post) {
 templ postSummary(p core.Post) {
 	{{ getEndpoint := fmt.Sprintf("/posts/%s", p.GetId()) }}
 	<li
-		class="flex justify-between my-2 items-center p-2 rounded-md border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+		class="flex justify-between gap-2 my-2 items-center p-2 rounded-md border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
 		hx-swap="innerHTML"
 		hx-get={ getEndpoint }
 		hx-target="#main-pane"
 	>
-		<h3>{ p.GetTitle() }</h3>
+		<h3 class="min-w-0 flex-1 truncate">{ p.GetTitle() }</h3>
 		// <span>{ p.GetCreatedAt().Format("Jan 2, 2006") }</span>
-		@icons.Trash("size-10 stroke-white")
+		@icons.Trash("size-10 fill-white shrink-0")
 	</li>
 }

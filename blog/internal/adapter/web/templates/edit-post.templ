@@ -7,25 +7,70 @@ import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/compon
 import "github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
 import "slices"
 import "fmt"
+import "time"
+
+type EditPostInput = core.CreatePostInput
+
+type FormValues struct {
+	Id        string
+	Title     string
+	Content   string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type EditPostProps struct {
+	Errs core.ValidationErrors
+	// Post   *core.Post
+	Values *FormValues
+}
 
 // this is reused for the case of creation and also edit
 // we just check what the pointer variable references
-templ EditPost(errs core.ValidationErrors, post *core.Post) {
+templ EditPost(props EditPostProps) {
 	{{
-		titleVal := ""
-		contentVal := ""
+		//================== necessary destructuring =================//
+		errs, in := props.Errs, props.Values
+		// ========================================================== //
 
-		if post != nil {
-			titleVal = post.GetTitle()
-			contentVal = post.GetContent()
-		}
+		postId, titleVal, contentVal, createdAt, updatedAt := in.Id, in.Title, in.Content, in.CreatedAt, in.UpdatedAt
 	}}
-	<div class="h-full w-full mx-auto max-w-2xl flex items-center justify-center">
+	<div id="form-page" class="h-full w-full mx-auto max-w-2xl flex flex-col justify-center gap-4">
+		<div class="flex justify-between">
+			@button.Button(button.Props{
+				Variant: button.VariantOutline,
+				Size:    button.SizeLg,
+				Class:   "px-3 py-4 cursor-pointer",
+				Attributes: templ.Attributes{
+					"hx-get":    "/posts",
+					"hx-target": "#posts-lists",
+					"hx-swap":   "outerHTML",
+				},
+			}) {
+				Back
+			}
+
+			if postId != "" {
+				@button.Button(button.Props{
+					Variant: button.VariantDestructive,
+					Size:    button.SizeLg,
+					Class:   "px-3 py-4 cursor-pointer",
+					Attributes: templ.Attributes{
+						"hx-delete":  fmt.Sprintf("/posts/%s", in.Id),
+						"hx-confirm": "Delete this post? This can't be undone.",
+					},
+				}) {
+					Delete Post
+				}
+			}
+		</div>
 		<div class="w-full rounded-lg border border-border bg-card text-card-foreground shadow-sm">
 			<form
 				class="flex flex-col gap-6 p-6"
-				if post != nil {
-					hx-patch={ fmt.Sprintf("/posts/%s", post.GetId()) }
+				if postId != "" {
+					hx-patch={ fmt.Sprintf("/posts/%s", postId) }
+          hx-target="#form-page"
+          hx-swap="outerHTML"
 				} else {
 					hx-post="/posts"
 				}
@@ -33,10 +78,28 @@ templ EditPost(errs core.ValidationErrors, post *core.Post) {
 				@field.Group() {
 					@field.Set() {
 						@field.Legend(field.LegendProps{Class: "data-[variant=legend]:text-lg"}) {
-							New Post
+							if postId != "" {
+								Edit Post
+							} else {
+								New Post
+							}
 						}
 						@field.Description(field.DescriptionProps{Class: "text-sm"}) {
-							Write a new entry for your blog. Content is written in Markdown and rendered to HTML when published.
+							if postId != "" {
+								Update this entry. Content is written in Markdown and rendered to HTML when published.
+							} else {
+								Write a new entry for your blog. Content is written in Markdown and rendered to HTML when published.
+							}
+						}
+						if postId != "" {
+							<div class="flex flex-col justify-between text-xs text-muted-foreground">
+								<span>
+									<strong>First published:</strong> { createdAt.Format("Jan 2, 2006 at 3:04 PM") }
+								</span>
+								<span>
+									<strong>Last edited:</strong> { updatedAt.Format("Jan 2, 2006 at 3:04 PM") }
+								</span>
+							</div>
 						}
 					}
 					@field.Group() {
@@ -68,7 +131,7 @@ templ EditPost(errs core.ValidationErrors, post *core.Post) {
 						Clear
 					}
 					@button.Button(button.Props{Variant: "default", Type: "submit", Size: button.SizeLg, Class: "px-3 py-4"}) {
-						if post != nil {
+						if postId != "" {
 							Update Post
 						} else {
 							Publish Post

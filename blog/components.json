@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dir": "assets/js",
+    "dir": "internal/adapter/web/assets/js",
     "path": "/assets/js"
   },
   "$schema": "https://shadcn-templ.com/schema/components.json",

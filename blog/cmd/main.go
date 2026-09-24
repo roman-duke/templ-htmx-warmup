@@ -20,6 +20,7 @@ func main() {
 	var g uniquegen.UniqueGenerator
 
 	svc := core.NewService(g, store)
+	seed(svc)
 	handler := web.NewHandler(svc)
 
 	fmt.Printf("\033[35mServer listening at http://localhost:%s\033[0m\n", PORT)

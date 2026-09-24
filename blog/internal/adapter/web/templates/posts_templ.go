@@ -42,7 +42,7 @@ func Posts(ps []core.Post) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<ul id=\"posts-lists\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<ul id=\"posts-lists\" class=\"flex flex-col space-y-2 flex-1 min-h-0 overflow-y-auto\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -155,7 +155,7 @@ func postSummary(p core.Post) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		getEndpoint := fmt.Sprintf("/posts/%s", p.GetId())
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<li class=\"flex justify-between my-2 items-center p-2 rounded-md border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer\" hx-swap=\"innerHTML\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<li class=\"flex justify-between gap-2 my-2 items-center p-2 rounded-md border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer\" hx-swap=\"innerHTML\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -168,14 +168,14 @@ func postSummary(p core.Post) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-target=\"#main-pane\"><h3>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-target=\"#main-pane\"><h3 class=\"min-w-0 flex-1 truncate\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(p.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/posts.templ`, Line: 60, Col: 20}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/posts.templ`, Line: 60, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -185,7 +185,7 @@ func postSummary(p core.Post) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = icons.Trash("size-10 stroke-white").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = icons.Trash("size-10 fill-white shrink-0").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -1,0 +1,28 @@
+package dialog
+
+import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/button"
+
+// This is a single, app-wide themed replacement for the native window.confirm
+// that htmx's hx-confirm triggers by default. We hook to it via the htmx:confirm
+// event
+templ Confirm() {
+	<dialog
+		id="confirm-dialog"
+		class="fixed top-10 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md rounded-lg border border-border bg-card p-0 text-card-foreground shadow-lg open:animate-in open:fade-in open:zoom-in-95"
+	>
+		<div class="flex flex-col gap-4 p-6">
+			<div class="flex flex-col gap-1.5">
+				<h2 class="text-lg font-semibold leading-none">Are you sure?</h2>
+				<p id="confirm-message" class="text-sm text-muted-foreground"></p>
+			</div>
+			<div class="flex justify-end gap-2">
+				@button.Button(button.Props{ID: "confirm-no", Variant: button.VariantOutline, Size: button.SizeLg, Class: "px-3 py-4 cursor-pointer"}) {
+					Cancel
+				}
+				@button.Button(button.Props{ID: "confirm-yes", Variant: button.VariantDestructive, Size: button.SizeLg, Class: "px-3 py-4 cursor-pointer"}) {
+					Confirm
+				}
+			</div>
+		</div>
+	</dialog>
+}

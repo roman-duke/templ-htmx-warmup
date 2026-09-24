@@ -66,7 +66,7 @@ func (s *Service) CreatePost(cP CreatePostInput) (Post, error) {
 	// requests to filter by a specific date range. We have to check if
 	// that range is even valid and then act accordingly (proceeding with
 	// the request or rejecting without calling our storage adapter).
-	now := time.Now().Format(time.RFC3339)
+	now := time.Now().Format(time.RFC3339Nano)
 	p.createdAt, p.updatedAt = now, now
 	// ====================================================================== //
 
@@ -170,5 +170,4 @@ type UpdatePostInput struct {
 	Title   string
 	Content string
 }
-
 // ============================================================================== //

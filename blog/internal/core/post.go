@@ -133,6 +133,14 @@ func (p *Post) GetCreatedAt() time.Time {
 	return date
 }
 
+func (p *Post) GetUpdatedAt() time.Time {
+	// mirrors GetCreatedAt: if the invariants held, updatedAt is a valid
+	// RFC3339 string, so the parse error is intentionally ignored here.
+	date, _ := time.Parse(time.RFC3339, p.updatedAt)
+
+	return date
+}
+
 // indicate the post record was touched and hence the
 // updatedAt bit should be bumped up.
 func (p *Post) Touch() {
