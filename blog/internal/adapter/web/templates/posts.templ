@@ -58,7 +58,13 @@ templ postSummary(p core.Post) {
 		hx-target="#main-pane"
 	>
 		<h3 class="min-w-0 flex-1 truncate">{ p.GetTitle() }</h3>
-		// <span>{ p.GetCreatedAt().Format("Jan 2, 2006") }</span>
-		@icons.Trash("size-10 fill-white shrink-0")
+		<sdiv
+			class="rounded-md hover:bg-destructive"
+			hx-delete={ fmt.Sprintf("/posts/%s", p.GetId()) }
+      hx-confirm="Delete this post? This can't be undone."
+      hx-on:click="event.stopPropagation()"
+		>
+			@icons.Trash("size-10 fill-white shrink-0")
+		</sdiv>
 	</li>
 }
