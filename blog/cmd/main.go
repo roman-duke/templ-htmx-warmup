@@ -14,6 +14,10 @@ import (
 
 var PORT = os.Getenv("PORT")
 
+// TODO: Resolve the CSR-ish feel
+// Work on the "content negotiation" across
+// the different routes.
+
 func main() {
 	// spin up the service via a constructor (that injects necesasry dependencies)
 	store := make(memory.InMemoryStore)
