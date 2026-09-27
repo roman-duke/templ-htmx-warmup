@@ -1,11 +1,9 @@
 package molecules
 
-templ Main() {
-	<div class="p-3 basis-full bg-card">
-    // this serves as the slot for the following:
-    // - creating a new blog post
-    // - the response of the hx-get"/posts" triggered from the component
-    //   in the sidebar on load. It is the target for the element that was marked with "hx-swap-oob"
-		<div id="main-pane" class="h-full flex"></div>
+templ Main(child templ.Component) {
+	<div class="h-full p-3 basis-full bg-card">
+		<div class="h-full flex flex-col" id="main-pane">
+			@child
+		</div>
 	</div>
 }

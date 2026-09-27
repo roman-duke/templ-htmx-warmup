@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/components/toast"
 	"github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/templates"
+	"github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/templates/molecules"
 	"github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
 )
 
@@ -24,18 +26,46 @@ func NewHandler(svc *core.Service) *Handler {
 	return &Handler{svc}
 }
 
+// our content negotiation helper (to decide whether to render a fragment or the full path)
+func (h *Handler) render(w http.ResponseWriter, r *http.Request, c templ.Component) {
+	// fragment path
+	if r.Header.Get("Hx-Request") != "" && r.Header.Get("Hx-History-Restore-Request") == "" {
+		c.Render(r.Context(), w)
+		return
+	}
+
+	// full-page path
+	posts, err := h.svc.GetPosts()
+	if err != nil {
+		// handle the error accordingly.
+		return
+	}
+
+	templates.App(posts, c).Render(r.Context(), w)
+}
+
 // our application has only one route (single-page), so this
 // just serves that page and embeds the necessary component islands
 // via htmx (I mean, not technically, but that's the ideal path)
 func (h *Handler) home(w http.ResponseWriter, r *http.Request) {
-	templates.App().Render(r.Context(), w)
+	// we delegate the task to our render handler for necessary composition
+	posts, err := h.svc.GetPosts()
+	if err != nil {
+		// handle the error later
+		return
+	}
+
+	mainComponent := molecules.Welcome(posts)
+	h.render(w, r, mainComponent)
+
 }
 
 func (h *Handler) newPost(w http.ResponseWriter, r *http.Request) {
-	// we need to set this header that the client reads in order to update the url
-	// client side.
+	// we need to set this header that the client reads in order to update the url client side.
 	w.Header().Set("Hx-Push-Url", "new-post")
-	templates.EditPost(templates.EditPostProps{Errs: core.ValidationErrors{}, Values: &templates.FormValues{}}).Render(r.Context(), w)
+
+	editPost := templates.EditPost(templates.EditPostProps{Errs: core.ValidationErrors{}, Values: &templates.FormValues{}})
+	h.render(w, r, editPost)
 }
 
 // now, we define the respective handlers
@@ -55,7 +85,7 @@ func (h *Handler) listPosts(w http.ResponseWriter, r *http.Request) {
 
 	// if successful -> hand the posts to the templ component for it to be displayed
 	// in a tabular format.
-	component := templates.Posts(posts)
+	component := molecules.Posts(posts)
 	component.Render(r.Context(), w)
 }
 
@@ -92,7 +122,7 @@ func (h *Handler) getPost(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: post.GetUpdatedAt(),
 	}
 
-	templates.EditPost(templates.EditPostProps{Errs: core.ValidationErrors{}, Values: &v}).Render(r.Context(), w)
+	h.render(w, r, templates.EditPost(templates.EditPostProps{Errs: core.ValidationErrors{}, Values: &v}))
 }
 
 func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
@@ -117,6 +147,7 @@ func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Hx-Reswap", "none")
 	w.Header().Set("Hx-Trigger", "postsMutated")
+	w.Header().Set("Hx-Push-Url", "/")
 
 	toast.ToastOOB(toast.Props{Title: "Success", Message: "Post successfully deleted!", Variant: "success"}).Render(r.Context(), w)
 	// on successful operation -> display a toast message that indicates the
@@ -173,8 +204,8 @@ func (h *Handler) updatePost(w http.ResponseWriter, r *http.Request) {
 
 		// construct the necessary form values
 		v := templates.FormValues{
-			Id: *id,
-			Title: *title,
+			Id:      *id,
+			Title:   *title,
 			Content: *content,
 			// this is actually weird because what if something also fails here too?
 			CreatedAt: post.GetCreatedAt(),
@@ -220,6 +251,14 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 		// for context-specific errors, pass the error to the templ component
 		// for it to handle properly
 		w.WriteHeader(http.StatusBadRequest)
+
+		// construct the necessary form values
+		v := templates.FormValues{
+			Title:   t,
+			Content: c,
+		}
+
+		templates.EditPost(templates.EditPostProps{Errs: ve, Values: &v}).Render(r.Context(), w)
 		return
 
 	case errors.Is(createErr, core.ErrDuplicatePost):

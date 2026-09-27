@@ -8,7 +8,9 @@ package molecules
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Sidebar() templ.Component {
+import "github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
+
+func Sidebar(ps []core.Post) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -37,7 +39,15 @@ func Sidebar() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex flex-col space-y-3 flex-1 min-h-0\" hx-get=\"/posts\" hx-swap=\"outerHTML\" hx-target=\"#posts-lists\" hx-trigger=\"load, postsMutated from:body\"><h1 class=\"text-lg\">POSTS</h1><div id=\"posts-lists\" class=\"flex flex-col space-y-2 flex-1 min-h-0 overflow-y-auto\"></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex flex-col space-y-3 flex-1 min-h-0\" hx-get=\"/posts\" hx-target=\"#posts-lists\" hx-swap=\"outerHTML\" hx-trigger=\"postsMutated from:body\"><h1 class=\"text-lg\">POSTS</h1>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = PostLists(ps).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

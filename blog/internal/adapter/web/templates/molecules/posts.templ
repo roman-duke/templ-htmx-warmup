@@ -1,4 +1,4 @@
-package templates
+package molecules
 
 import "github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
 
@@ -7,45 +7,15 @@ import "github.com/roman-duke/templ-htmx-warmup/blog/internal/adapter/web/compon
 import "fmt"
 
 templ Posts(ps []core.Post) {
-	{{ postsLength := len(ps) }}
 	// the beauty of Go having multiple return values is that we don't need a fragment wrapper
 	// we can just have the sibling elements at the top level and during compilation, this just
 	// becomes a sequence of WriteString calls to the respective target.
 	// This is the response bit for the section that would be displayed in the sidebar
-	if postsLength == 0 {
-		<span id="posts-lists" class="font-medium relative top-10 p-3">empty :(</span>
-	} else {
-		<ul id="posts-lists" class="flex flex-col space-y-2 flex-1 min-h-0 overflow-y-auto">
-			for _, val := range ps {
-				@postSummary(val)
-			}
-		</ul>
-	}
+	@PostLists(ps)
 	// This is the response bit for the section that would be displayed in the main pane
 	// we use it to dynamically render if we should display the empty state and a "welcome
 	// back" message or not
-	<div class="flex flex-col" id="main-pane" hx-swap-oob="innerHTML">
-		if postsLength == 0 {
-			<div class="h-full w-full flex items-center justify-center">
-				<div class="relative -top-10 space-y-1">
-					<h2 class="text-2xl text-center font-medium">No posts yet</h2>
-					@button.Button(button.Props{Variant: "secondary", Class: "cursor-pointer py-4", Attributes: templ.Attributes{"hx-get": "/new-post", "hx-target": "#main-pane", "hx-swap": "innerHTML"}}) {
-						Create your first blog post
-					}
-				</div>
-			</div>
-		} else {
-			<div class="px-3 w-full flex flex-col items-center justify-center space-y-4">
-				<div class="text-center">
-					<h2 class="font-semibold text-xl">Hello there! Welcome back</h2>
-					<p class="">Ready to cook again?</p>
-				</div>
-				@button.Button(button.Props{Variant: "secondary", Class: "cursor-pointer py-4", Attributes: templ.Attributes{"hx-get": "/new-post", "hx-target": "#main-pane", "hx-swap": "innerHTML"}}) {
-					Create a new blog post
-				}
-			</div>
-		}
-	</div>
+	@Welcome(ps)
 }
 
 // this should ideally be placed in the "molecules section, but that's an overkill for structure"
@@ -56,15 +26,58 @@ templ postSummary(p core.Post) {
 		hx-swap="innerHTML"
 		hx-get={ getEndpoint }
 		hx-target="#main-pane"
+    hx-push-url={ getEndpoint }
+    hx-select="unset"
 	>
 		<h3 class="min-w-0 flex-1 truncate">{ p.GetTitle() }</h3>
-		<sdiv
+		<div
 			class="rounded-md hover:bg-destructive"
 			hx-delete={ fmt.Sprintf("/posts/%s", p.GetId()) }
-      hx-confirm="Delete this post? This can't be undone."
-      hx-on:click="event.stopPropagation()"
+			hx-confirm="Delete this post? This can't be undone."
+			hx-on:click="event.stopPropagation()"
 		>
 			@icons.Trash("size-10 fill-white shrink-0")
-		</sdiv>
+		</div>
 	</li>
+}
+
+// Aside (the side bar that displays the summary of the blog posts)
+templ PostLists(ps []core.Post) {
+	{{ postsLength := len(ps) }}
+	if postsLength == 0 {
+		<span id="posts-lists" class="font-medium relative top-10 p-3">empty :(</span>
+	} else {
+		<ul id="posts-lists" class="flex flex-col space-y-2 flex-1 min-h-0 overflow-y-auto">
+			for _, val := range ps {
+				@postSummary(val)
+			}
+		</ul>
+	}
+}
+
+// Main section that displays the welcome page
+templ Welcome(ps []core.Post) {
+	{{ postsLength := len(ps) }}
+	// <div class="h-full flex flex-col" id="main-pane" hx-swap-oob="true">
+		if postsLength == 0 {
+			<div class="h-full w-full flex items-center justify-center" id="main-pane" hx-swap-oob="innerHTML">
+				<div class="relative -top-10 space-y-1">
+					<h2 class="text-2xl text-center font-medium">No posts yet</h2>
+					@button.Button(button.Props{Variant: "secondary", Class: "cursor-pointer py-4", Attributes: templ.Attributes{"hx-get": "/new-post", "hx-target": "#main-pane", "hx-swap": "innerHTML"}}) {
+						Create your first blog post
+					}
+				</div>
+			</div>
+		} else {
+			<div class="h-full px-3 w-full flex flex-col items-center justify-center space-y-4" id="main-pane" hx-swap-oob="outerHTML">
+				<div class="text-center">
+					<h2 class="font-semibold text-xl">Hello there! Welcome back</h2>
+					<p class="">Ready to cook again?</p>
+				</div>
+				@button.Button(button.Props{Variant: "secondary", Class: "cursor-pointer py-4", Attributes: templ.Attributes{"hx-get": "/new-post", "hx-target": "#main-pane", "hx-swap": "innerHTML"}}) {
+					Create a new blog post
+				}
+			</div>
+		}
+	// </div>
 }

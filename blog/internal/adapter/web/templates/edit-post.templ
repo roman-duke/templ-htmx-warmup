@@ -37,19 +37,15 @@ templ EditPost(props EditPostProps) {
 	}}
 	<div id="form-page" class="h-full w-full mx-auto max-w-2xl flex flex-col justify-center gap-4">
 		<div class="flex justify-between">
-			@button.Button(button.Props{
-				Variant: button.VariantOutline,
-				Size:    button.SizeLg,
-				Class:   "px-3 py-4 cursor-pointer",
-				Attributes: templ.Attributes{
-					"hx-get":    "/posts",
-					"hx-target": "#posts-lists",
-					"hx-swap":   "outerHTML",
-				},
-			}) {
-				Back
-			}
-
+			<a href="/">
+				@button.Button(button.Props{
+					Variant: button.VariantOutline,
+					Size:    button.SizeLg,
+					Class:   "px-3 py-4 cursor-pointer",
+				}) {
+					Back
+				}
+			</a>
 			if postId != "" {
 				@button.Button(button.Props{
 					Variant: button.VariantDestructive,
@@ -69,10 +65,12 @@ templ EditPost(props EditPostProps) {
 				class="flex flex-col gap-6 p-6"
 				if postId != "" {
 					hx-patch={ fmt.Sprintf("/posts/%s", postId) }
-          hx-target="#form-page"
-          hx-swap="outerHTML"
+					hx-target="#form-page"
+					hx-swap="outerHTML"
 				} else {
 					hx-post="/posts"
+          hx-target="#form-page"
+          hx-swap="outerHTML"
 				}
 			>
 				@field.Group() {
