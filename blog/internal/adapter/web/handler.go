@@ -32,7 +32,9 @@ func (h *Handler) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) newPost(w http.ResponseWriter, r *http.Request) {
-	// construct the values
+	// we need to set this header that the client reads in order to update the url
+	// client side.
+	w.Header().Set("Hx-Push-Url", "new-post")
 	templates.EditPost(templates.EditPostProps{Errs: core.ValidationErrors{}, Values: &templates.FormValues{}}).Render(r.Context(), w)
 }
 
