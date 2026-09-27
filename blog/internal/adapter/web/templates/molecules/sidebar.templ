@@ -7,7 +7,7 @@ templ Sidebar(ps []core.Post) {
 		@Header()
 
     // hx-select attribute being inherited (this cost me about 2hrs)
-		<div class="flex flex-col space-y-3 flex-1 min-h-0" hx-get="/posts" hx-target="#posts-lists" hx-swap="outerHTML" hx-trigger="postsMutated from:body">
+		<div class="flex flex-col space-y-3 flex-1 min-h-0" hx-get="/posts" hx-select="#posts-lists" hx-target="#posts-lists" hx-swap="outerHTML" hx-trigger="postsMutated from:body">
 			<h1 class="text-lg">POSTS</h1>
 
 			// <div id="posts-lists" class="flex flex-col space-y-2 flex-1 min-h-0 overflow-y-auto"></div>

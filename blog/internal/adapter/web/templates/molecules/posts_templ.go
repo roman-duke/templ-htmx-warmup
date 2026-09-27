@@ -210,7 +210,7 @@ func Welcome(ps []core.Post) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		postsLength := len(ps)
 		if postsLength == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"h-full w-full flex items-center justify-center\" id=\"main-pane\" hx-swap-oob=\"innerHTML\"><div class=\"relative -top-10 space-y-1\"><h2 class=\"text-2xl text-center font-medium\">No posts yet</h2>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"h-full w-full flex items-center justify-center\" id=\"main-pane\"><div class=\"relative -top-10 space-y-1\"><h2 class=\"text-2xl text-center font-medium\">No posts yet</h2>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -241,7 +241,7 @@ func Welcome(ps []core.Post) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"h-full px-3 w-full flex flex-col items-center justify-center space-y-4\" id=\"main-pane\" hx-swap-oob=\"outerHTML\"><div class=\"text-center\"><h2 class=\"font-semibold text-xl\">Hello there! Welcome back</h2><p class=\"\">Ready to cook again?</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"h-full px-3 w-full flex flex-col items-center justify-center space-y-4\" id=\"main-pane\"><div class=\"text-center\"><h2 class=\"font-semibold text-xl\">Hello there! Welcome back</h2><p class=\"\">Ready to cook again?</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

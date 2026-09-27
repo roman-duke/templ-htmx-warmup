@@ -54,6 +54,8 @@ templ EditPost(props EditPostProps) {
 					Attributes: templ.Attributes{
 						"hx-delete":  fmt.Sprintf("/posts/%s", in.Id),
 						"hx-confirm": "Delete this post? This can't be undone.",
+            "hx-target": "#main-pane",
+            "hx-swap": "outerHTML",
 					},
 				}) {
 					Delete Post

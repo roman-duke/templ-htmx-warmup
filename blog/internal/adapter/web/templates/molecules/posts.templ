@@ -60,7 +60,7 @@ templ Welcome(ps []core.Post) {
 	{{ postsLength := len(ps) }}
 	// <div class="h-full flex flex-col" id="main-pane" hx-swap-oob="true">
 		if postsLength == 0 {
-			<div class="h-full w-full flex items-center justify-center" id="main-pane" hx-swap-oob="innerHTML">
+			<div class="h-full w-full flex items-center justify-center" id="main-pane">
 				<div class="relative -top-10 space-y-1">
 					<h2 class="text-2xl text-center font-medium">No posts yet</h2>
 					@button.Button(button.Props{Variant: "secondary", Class: "cursor-pointer py-4", Attributes: templ.Attributes{"hx-get": "/new-post", "hx-target": "#main-pane", "hx-swap": "innerHTML"}}) {
@@ -69,7 +69,7 @@ templ Welcome(ps []core.Post) {
 				</div>
 			</div>
 		} else {
-			<div class="h-full px-3 w-full flex flex-col items-center justify-center space-y-4" id="main-pane" hx-swap-oob="outerHTML">
+			<div class="h-full px-3 w-full flex flex-col items-center justify-center space-y-4" id="main-pane">
 				<div class="text-center">
 					<h2 class="font-semibold text-xl">Hello there! Welcome back</h2>
 					<p class="">Ready to cook again?</p>

@@ -145,10 +145,12 @@ func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Hx-Reswap", "none")
-	w.Header().Set("Hx-Trigger", "postsMutated")
 	w.Header().Set("Hx-Push-Url", "/")
+	w.Header().Set("Hx-Trigger", "postsMutated")
 
+	posts, err := h.svc.GetPosts()
+
+	h.render(w, r, molecules.Welcome(posts))
 	toast.ToastOOB(toast.Props{Title: "Success", Message: "Post successfully deleted!", Variant: "success"}).Render(r.Context(), w)
 	// on successful operation -> display a toast message that indicates the
 	// post was successfully deleted

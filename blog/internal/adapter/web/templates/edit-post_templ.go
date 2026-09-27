@@ -121,6 +121,8 @@ func EditPost(props EditPostProps) templ.Component {
 				Attributes: templ.Attributes{
 					"hx-delete":  fmt.Sprintf("/posts/%s", in.Id),
 					"hx-confirm": "Delete this post? This can't be undone.",
+					"hx-target":  "#main-pane",
+					"hx-swap":    "outerHTML",
 				},
 			}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -139,7 +141,7 @@ func EditPost(props EditPostProps) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("/posts/%s", postId))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/edit-post.templ`, Line: 67, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/edit-post.templ`, Line: 69, Col: 48}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 			if templ_7745c5c3_Err != nil {
@@ -257,7 +259,7 @@ func EditPost(props EditPostProps) templ.Component {
 					var templ_7745c5c3_Var9 string
 					templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(createdAt.Format("Jan 2, 2006 at 3:04 PM"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/edit-post.templ`, Line: 95, Col: 87}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/edit-post.templ`, Line: 97, Col: 87}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 					if templ_7745c5c3_Err != nil {
@@ -270,7 +272,7 @@ func EditPost(props EditPostProps) templ.Component {
 					var templ_7745c5c3_Var10 string
 					templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(updatedAt.Format("Jan 2, 2006 at 3:04 PM"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/edit-post.templ`, Line: 98, Col: 83}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/edit-post.templ`, Line: 100, Col: 83}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 					if templ_7745c5c3_Err != nil {
@@ -592,7 +594,7 @@ func fieldRenderer(key string, source core.ValidationErrors) templ.Component {
 				var templ_7745c5c3_Var22 string
 				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(err.Message)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/edit-post.templ`, Line: 160, Col: 16}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/adapter/web/templates/edit-post.templ`, Line: 162, Col: 16}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {

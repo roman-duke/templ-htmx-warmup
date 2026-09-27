@@ -39,7 +39,7 @@ func Sidebar(ps []core.Post) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex flex-col space-y-3 flex-1 min-h-0\" hx-get=\"/posts\" hx-target=\"#posts-lists\" hx-swap=\"outerHTML\" hx-trigger=\"postsMutated from:body\"><h1 class=\"text-lg\">POSTS</h1>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex flex-col space-y-3 flex-1 min-h-0\" hx-get=\"/posts\" hx-select=\"#posts-lists\" hx-target=\"#posts-lists\" hx-swap=\"outerHTML\" hx-trigger=\"postsMutated from:body\"><h1 class=\"text-lg\">POSTS</h1>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
