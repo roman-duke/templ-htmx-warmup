@@ -7,8 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
 
 	"github.com/roman-duke/templ-htmx-warmup/blog/internal/core"
 	"github.com/yuin/goldmark"
@@ -70,20 +68,7 @@ func (f *FileUpload) Delete(title string, fileType core.FileType) error {
 }
 
 func formatFileName(fName, ext string) string {
-	// we first need to get rid of apostrophes
-	var buf strings.Builder
-	for _, el := range fName {
-		if el != '\u0027' && el != '\u2019' {
-			buf.WriteRune(el)
-		}
-	}
-
-	strippedFName := buf.String()
-
-	// Match any sequence of characters that are NOT a-z, A-Z, or 0-9
-	reg := regexp.MustCompile(`[^a-zA-Z0-9]+`)
-	subNames := reg.Split(strings.ToLower(strippedFName), -1)
-	res := strings.Join(subNames, "-")
+	res := core.CreateSlug(fName)
 
 	return fmt.Sprintf("%s%s%s", res, ".", ext)
 }

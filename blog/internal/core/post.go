@@ -2,6 +2,8 @@ package core
 
 import (
 	"errors"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,6 +23,8 @@ type Post struct {
 	content   string
 	createdAt string
 	updatedAt string
+	// not sure if this should be here?
+	slug string
 }
 
 var ErrInvalidUUID = errors.New("invalid uuid")
@@ -30,6 +34,7 @@ var ErrContentTooShort = errors.New("post content requires at least 50 character
 var ErrInvalidDate = errors.New("date is invalid")
 var ErrInvalidCreationDate = errors.New("date of creation cannot be later than the updated date")
 var ErrDuplicatePost = errors.New("post already exists")
+var ErrSlugEmpty = errors.New("slug cannot be empty")
 
 // "constructor to "create" a new post
 // it basically just does some validation
@@ -78,6 +83,10 @@ func (p *Post) Validate() ValidationErrors {
 		errs = append(errs, FieldError{"content", ErrContentTooShort.Error()})
 	}
 
+	if len(p.slug) == 0 {
+		errs = append(errs, FieldError{"slug", ErrSlugEmpty.Error()})
+	}
+
 	// parse both dates
 	created, errCreated := time.Parse(time.RFC3339, p.createdAt)
 	updated, errUpdated := time.Parse(time.RFC3339, p.updatedAt)
@@ -122,6 +131,33 @@ func (p *Post) GetContent() string {
 	return p.content
 }
 
+func (p *Post) GetSlug() string {
+	return p.slug
+}
+
+func CreateSlug(title string) string {
+	var buf strings.Builder
+	for _, el := range title {
+		if el != '\u0027' && el != '\u2019' {
+			buf.WriteRune(el)
+		}
+	}
+
+	st := buf.String()
+
+	// Match any sequence of characters that are NOT a-z, A-Z, or 0-9
+	reg := regexp.MustCompile(`[^a-zA-Z0-9]+`)
+	subNames := reg.Split(strings.ToLower(st), -1)
+	res := strings.Join(subNames, "-")
+
+	return res
+}
+
+func (p *Post) SetSlug(s string) {
+	slug := CreateSlug(s)
+	p.slug = slug
+}
+
 func (p *Post) GetCreatedAt() time.Time {
 	// how is this error ideally meant to be handled?
 	date, _ := time.Parse(time.RFC3339, p.createdAt)
@@ -146,4 +182,5 @@ func (p *Post) GetUpdatedAt() time.Time {
 func (p *Post) Touch() {
 	p.updatedAt = time.Now().Format(time.RFC3339)
 }
+
 //===================================================================//

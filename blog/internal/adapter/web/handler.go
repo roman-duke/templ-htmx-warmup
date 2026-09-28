@@ -126,6 +126,7 @@ func (h *Handler) getPost(w http.ResponseWriter, r *http.Request) {
 		Id:        post.GetId(),
 		Title:     post.GetTitle(),
 		Content:   post.GetContent(),
+		Slug:      post.GetSlug(),
 		CreatedAt: post.GetCreatedAt(),
 		UpdatedAt: post.GetUpdatedAt(),
 	}
@@ -308,7 +309,7 @@ func (h *Handler) getBlogPost(w http.ResponseWriter, r *http.Request) {
 
 	fileContent := string(raw)
 	// now pass the file content to the relevant templ component
-	h.render(w, r, templates.BlogLayout(templ.Raw(fileContent)))
+	templates.BlogPage(templ.Raw(fileContent)).Render(r.Context(), w)
 }
 
 // the logging middleware used to observe the requests that came in

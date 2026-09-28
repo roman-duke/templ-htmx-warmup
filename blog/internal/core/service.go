@@ -72,6 +72,9 @@ func (s *Service) CreatePost(cP CreatePostInput) (Post, error) {
 	p.createdAt, p.updatedAt = now, now
 	// ====================================================================== //
 
+	// create the slug
+	p.slug = CreateSlug(p.title)
+
 	// perform business-side validation on the post
 	// and then store it in memory
 	validPost, errs := NewPost(p)
@@ -104,7 +107,19 @@ func (s *Service) CreatePost(cP CreatePostInput) (Post, error) {
 // in our service layer, the title and the content are viewed as separate things
 // so we need to join them into one before we pass into the uploader
 func formatContent(p Post) string {
-	return fmt.Sprintf("# %s", p.title) + "\n\n\n\n" + p.content
+	meta := fmt.Sprintf("*Published %s · Updated %s*", formatDate(p.createdAt), formatDate(p.updatedAt))
+
+	return fmt.Sprintf("# %s\n\n%s\n\n%s", p.title, meta, p.content)
+}
+
+// formatDate turns an RFC3339Nano timestamp into a human-readable date,
+// falling back to the raw value if it can't be parsed.
+func formatDate(ts string) string {
+	t, err := time.Parse(time.RFC3339Nano, ts)
+	if err != nil {
+		return ts
+	}
+	return t.Format("Jan 2, 2006")
 }
 
 // For the update bit, we are strictly going to be doing

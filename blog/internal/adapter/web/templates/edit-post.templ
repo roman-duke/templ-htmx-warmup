@@ -15,6 +15,7 @@ type FormValues struct {
 	Id        string
 	Title     string
 	Content   string
+	Slug      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -47,19 +48,30 @@ templ EditPost(props EditPostProps) {
 				}
 			</a>
 			if postId != "" {
-				@button.Button(button.Props{
-					Variant: button.VariantDestructive,
-					Size:    button.SizeLg,
-					Class:   "px-3 py-4 cursor-pointer",
-					Attributes: templ.Attributes{
-						"hx-delete":  fmt.Sprintf("/posts/%s", in.Id),
-						"hx-confirm": "Delete this post? This can't be undone.",
-            "hx-target": "#main-pane",
-            "hx-swap": "outerHTML",
-					},
-				}) {
-					Delete Post
-				}
+				<div class="flex gap-2">
+					<a href={ templ.URL(fmt.Sprintf("/blog/%s", in.Slug)) }>
+						@button.Button(button.Props{
+							Variant: button.VariantOutline,
+							Size:    button.SizeLg,
+							Class:   "px-3 py-4 cursor-pointer",
+						}) {
+							View Post
+						}
+					</a>
+					@button.Button(button.Props{
+						Variant: button.VariantDestructive,
+						Size:    button.SizeLg,
+						Class:   "px-3 py-4 cursor-pointer",
+						Attributes: templ.Attributes{
+							"hx-delete":  fmt.Sprintf("/posts/%s", in.Id),
+							"hx-confirm": "Delete this post? This can't be undone.",
+							"hx-target":  "#main-pane",
+							"hx-swap":    "outerHTML",
+						},
+					}) {
+						Delete Post
+					}
+				</div>
 			}
 		</div>
 		<div class="w-full rounded-lg border border-border bg-card text-card-foreground shadow-sm">

@@ -5,3 +5,22 @@ templ BlogLayout(content templ.Component) {
 		@content
 	</div>
 }
+
+// BlogPage wraps a rendered post in the base HTML document (Layout) without the
+// App shell (no sidebar / main pane), so a published post is served as its own
+// standalone full page.
+templ BlogPage(content templ.Component) {
+	@Layout() {
+		<style>
+      h1 {
+        font-weight: 800;
+        font-size: larger;
+      }
+
+      p {
+        color: "#262626"
+      }
+    </style>
+		@BlogLayout(content)
+	}
+}
