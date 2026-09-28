@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -38,8 +39,8 @@ type Service struct {
 	bucket Bucket
 }
 
-func NewService(id IDGenerator, s PostStore) *Service {
-	return &Service{store: s, id: id}
+func NewService(id IDGenerator, s PostStore, b Bucket) *Service {
+	return &Service{store: s, id: id, bucket: b}
 }
 
 func (s *Service) CreatePost(cP CreatePostInput) (Post, error) {
@@ -88,15 +89,22 @@ func (s *Service) CreatePost(cP CreatePostInput) (Post, error) {
 	}
 
 	// now, we also "upload" the post to our relevant bucket
-	uploadErr := s.bucket.Upload("", "", "html")
+	uploadErr := s.bucket.Upload(validPost.title, formatContent(validPost), "html")
 
 	// in the case where there was an error uploading to our bucket, then we basically
 	// delete the relevant post that has already been stored in memory
 	if uploadErr != nil {
+		s.DeletePost(p.id)
 		return Post{}, ErrUploadFailed
 	}
 
 	return validPost, nil
+}
+
+// in our service layer, the title and the content are viewed as separate things
+// so we need to join them into one before we pass into the uploader
+func formatContent(p Post) string {
+	return fmt.Sprintf("# %s", p.title) + "\n\n" + p.content
 }
 
 // For the update bit, we are strictly going to be doing
@@ -136,7 +144,7 @@ func (s *Service) UpdatePost(id string, partial UpdatePostInput) (Post, error) {
 
 func (s *Service) DeletePost(id string) error {
 	// We first check if the post even exists
-	_, err := s.store.Find(id)
+	post, err := s.store.Find(id)
 	if err != nil {
 		return ErrPostNotFound
 	}
@@ -146,6 +154,17 @@ func (s *Service) DeletePost(id string) error {
 	if deleteErr != nil {
 		return ErrInternalSvr
 	}
+
+	// Also remove the relevant files from the bucket
+	bucketDeleteErr := s.bucket.Delete(post.title, "html")
+
+	// if this goes wrong, we are "ideally' meant to try again a few times
+	// but most importantly, we log this so as to be aware of "orphaned"
+	// blog posts
+	if bucketDeleteErr != nil {
+		log.Printf("\033[31mblog post could not be deleted: %v\033[31m", bucketDeleteErr)
+	}
+
 
 	return nil
 }

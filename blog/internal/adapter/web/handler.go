@@ -284,6 +284,12 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 	toast.ToastOOB(toast.Props{Title: "Success", Message: "Post created successfully!", Variant: "success"}).Render(r.Context(), w)
 }
 
+// func (h *Handler) getBlogPost(w http.ResponseWriter, r *http.Request) {
+// 	blogId := r.PathValue("id")
+
+
+// }
+
 // the logging middleware used to observe the requests that came in
 // and how long it took to handle the request
 func withLogging(next http.Handler) http.Handler {

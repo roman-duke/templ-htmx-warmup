@@ -15,5 +15,11 @@ const (
 // in the desired destination.
 
 type Bucket interface {
-	Upload(dest string, content string, t FileType) (error)
+	Upload(title, content string, t FileType) (error)
+
+	// ideally, we should actually have a file destination, but our service
+	// layer currently has no clue about that, hence we just pass the title
+	// and leave job of title to fileName deconstruction to happen in the
+	// method body implemenation
+	Delete(title string, t FileType) (error)
 }
