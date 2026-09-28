@@ -18,7 +18,7 @@ func (h *Handler) Routes() http.Handler {
 	mux.HandleFunc("GET /posts", h.listPosts)
 	mux.HandleFunc("POST /posts", h.createPost)
 	mux.HandleFunc("GET /posts/{id}", h.getPost)
-	// mux.HandleFunc("GET /blog/{id}", h.getBlogPost)
+	mux.HandleFunc("GET /blog/{id}", h.getBlogPost)
 	mux.HandleFunc("PATCH /posts/{id}", h.updatePost)
 	mux.HandleFunc("DELETE /posts/{id}", h.deletePost)
 

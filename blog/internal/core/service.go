@@ -104,7 +104,7 @@ func (s *Service) CreatePost(cP CreatePostInput) (Post, error) {
 // in our service layer, the title and the content are viewed as separate things
 // so we need to join them into one before we pass into the uploader
 func formatContent(p Post) string {
-	return fmt.Sprintf("# %s", p.title) + "\n\n" + p.content
+	return fmt.Sprintf("# %s", p.title) + "\n\n\n\n" + p.content
 }
 
 // For the update bit, we are strictly going to be doing

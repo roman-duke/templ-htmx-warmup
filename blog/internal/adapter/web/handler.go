@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/a-h/templ"
@@ -57,7 +59,6 @@ func (h *Handler) home(w http.ResponseWriter, r *http.Request) {
 
 	mainComponent := molecules.Welcome(posts)
 	h.render(w, r, mainComponent)
-
 }
 
 func (h *Handler) newPost(w http.ResponseWriter, r *http.Request) {
@@ -83,10 +84,17 @@ func (h *Handler) listPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if successful -> hand the posts to the templ component for it to be displayed
-	// in a tabular format.
+	// fragment path
 	component := molecules.Posts(posts)
-	component.Render(r.Context(), w)
+
+	welcomeComponent := molecules.Welcome(posts)
+
+	if r.Header.Get("Hx-Request") != "" && r.Header.Get("Hx-History-Restore-Request") == "" {
+		component.Render(r.Context(), w)
+		return
+	}
+
+	templates.App(posts, welcomeComponent).Render(r.Context(), w)
 }
 
 func (h *Handler) getPost(w http.ResponseWriter, r *http.Request) {
@@ -284,11 +292,24 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 	toast.ToastOOB(toast.Props{Title: "Success", Message: "Post created successfully!", Variant: "success"}).Render(r.Context(), w)
 }
 
-// func (h *Handler) getBlogPost(w http.ResponseWriter, r *http.Request) {
-// 	blogId := r.PathValue("id")
+func (h *Handler) getBlogPost(w http.ResponseWriter, r *http.Request) {
+	blogId := r.PathValue("id")
 
+	dir := "./internal/adapter/web/assets/files"
+	filePath := filepath.Join(dir, blogId + ".html")
 
-// }
+	raw, err := os.ReadFile(filePath)
+
+	if err != nil {
+		// handle this error later
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fileContent := string(raw)
+	// now pass the file content to the relevant templ component
+	h.render(w, r, templates.BlogLayout(templ.Raw(fileContent)))
+}
 
 // the logging middleware used to observe the requests that came in
 // and how long it took to handle the request
