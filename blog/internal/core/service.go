@@ -33,8 +33,9 @@ type IDGenerator interface {
 }
 
 type Service struct {
-	store PostStore
-	id    IDGenerator
+	id     IDGenerator
+	store  PostStore
+	bucket Bucket
 }
 
 func NewService(id IDGenerator, s PostStore) *Service {
@@ -84,6 +85,15 @@ func (s *Service) CreatePost(cP CreatePostInput) (Post, error) {
 	err := s.store.Insert(validPost)
 	if err != nil {
 		return Post{}, ErrInternalSvr
+	}
+
+	// now, we also "upload" the post to our relevant bucket
+	uploadErr := s.bucket.Upload("", "", "html")
+
+	// in the case where there was an error uploading to our bucket, then we basically
+	// delete the relevant post that has already been stored in memory
+	if uploadErr != nil {
+		return Post{}, ErrUploadFailed
 	}
 
 	return validPost, nil
@@ -170,4 +180,5 @@ type UpdatePostInput struct {
 	Title   string
 	Content string
 }
+
 // ============================================================================== //
