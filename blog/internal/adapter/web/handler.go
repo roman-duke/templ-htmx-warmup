@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/a-h/templ"
@@ -296,14 +295,26 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) getBlogPost(w http.ResponseWriter, r *http.Request) {
 	blogId := r.PathValue("id")
 
-	dir := "./internal/adapter/web/assets/files"
-	filePath := filepath.Join(dir, blogId + ".html")
-
-	raw, err := os.ReadFile(filePath)
-
+	// Open the files directory as a sandbox. Any read that would escape this
+	// subtree (via "..", an absolute path, or a symlink pointing outside) is
+	// refused by the OS, so a hostile blogId can't be used to traverse the disk.
+	root, err := os.OpenRoot("./internal/adapter/web/assets/files")
 	if err != nil {
-		// handle this error later
 		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer root.Close()
+
+	// root.ReadFile resolves the path *relative to the root* and errors if it
+	// escapes. No filepath.Join into a shared dir string anymore.
+	raw, err := root.ReadFile(blogId + ".html")
+	if err != nil {
+		// Not-found and escape attempts both land here; answer 404 for either so
+		// we don't leak which files exist (or that someone tried to traverse).
+		if !errors.Is(err, os.ErrNotExist) {
+			log.Printf("\033[31mblog read failed for %q: %v\033[0m", blogId, err)
+		}
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
